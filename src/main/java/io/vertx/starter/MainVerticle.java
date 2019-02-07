@@ -14,6 +14,9 @@ import io.vertx.reactivex.ext.web.RoutingContext;
 import io.vertx.reactivex.ext.web.handler.BodyHandler;
 import io.vertx.reactivex.ext.web.handler.StaticHandler;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 
 public class MainVerticle extends AbstractVerticle {
@@ -21,6 +24,8 @@ public class MainVerticle extends AbstractVerticle {
   public static final String HEADER_CONTENT_TYPE = "Content-Type";
   public static final String CONTENT_TYPE_JSON = "application/json; charset=utf-8";
   private final static HashMap<String, Cache> caches = new HashMap<String, Cache>();
+  private final static JsonObject cachesMap = new JsonObject();
+//  private final static HashMap<String, Collection<String>> cachesMap = new HashMap<>();
 
   private final Logger LOGGER = LoggerFactory.getLogger("Cache-Verticle");
 
@@ -64,14 +69,12 @@ public class MainVerticle extends AbstractVerticle {
   }
 
   private void addCacheHandler(RoutingContext routingContext) {
-//    Completable retrieveCache = Cache.<String, String>create("localhost", vertx)
-//      .doOnSuccess(c -> {
-//        this.caches.put(c.toString(), c);
       Cache.create("localhost", vertx).doOnSuccess(c -> {
         this.caches.put("localhost", c);
+        this.cachesMap.put("localhost", new JsonArray().add("cart"));
         JsonArray cachesArray = new JsonArray();
         this.caches.keySet().forEach(e -> cachesArray.add(Json.encode(e)));
-        JsonObject retVal = new JsonObject().put("caches", cachesArray);
+        JsonObject retVal = new JsonObject().put("caches", this.cachesMap.getJsonArray("localhost"));
         routingContext.response()
           .setStatusCode(200)
           .putHeader(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON)
