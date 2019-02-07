@@ -2,6 +2,8 @@ package io.vertx.starter;
 
 import io.reactivex.Completable;
 import io.reactivex.Single;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.reactivex.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
@@ -67,20 +69,21 @@ public class MainVerticle extends AbstractVerticle {
 //        this.caches.put(c.toString(), c);
       Cache.create("localhost", vertx).doOnSuccess(c -> {
         this.caches.put("localhost", c);
+        JsonArray cachesArray = new JsonArray();
+        this.caches.keySet().forEach(e -> cachesArray.add(Json.encode(e)));
+        JsonObject retVal = new JsonObject().put("caches", cachesArray);
         routingContext.response()
           .setStatusCode(200)
           .putHeader(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON)
-          .end(new JsonObject().put("caches", caches.size()).encodePrettily());
+          .end(retVal.encodePrettily());
+      }).doOnError(e -> {
+        routingContext.response()
+          .setStatusCode(500)
+          .putHeader(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON)
+          .end(new JsonObject().put("error", e.getMessage()).encodePrettily());
       }).subscribe();
-//      })
-//      .doOnError(e -> {
-//        routingContext.response()
-//          .setStatusCode(500)
-//          .putHeader(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON)
-//          .end(new JsonObject().put("error", e.getMessage()).encodePrettily());
-//      })
-//      .toCompletable();
   }
+
 }
 
 

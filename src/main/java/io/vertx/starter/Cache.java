@@ -2,6 +2,7 @@ package io.vertx.starter;
 
 import io.reactivex.Completable;
 import io.reactivex.Single;
+import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import org.infinispan.client.hotrod.RemoteCache;
 import org.infinispan.client.hotrod.RemoteCacheManager;
@@ -59,6 +60,10 @@ public class Cache<K, V> {
       cache.put(key, value, ttl, TimeUnit.SECONDS);
       future.complete();
     }).toCompletable();
+  }
+
+  public JsonObject toJsonObject(){
+    return new JsonObject().put("host", this.host).put("size", this.cache.size());
   }
 
 }
