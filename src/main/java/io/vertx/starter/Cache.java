@@ -18,8 +18,9 @@ public class Cache<K, V> {
 
   private final Vertx vertx;
   private final RemoteCache<K, V> cache;
+  private static final String host = "localhost";
 
-  public static <K, V> Single<Cache<K, V>> create(Vertx vertx) {
+  public static <K, V> Single<Cache<K, V>> create(String host,  Vertx vertx) {
     Configuration config = new ConfigurationBuilder().addServer().host("localhost").port(11222).build();
     return vertx.
       <RemoteCache<K, V>>rxExecuteBlocking(

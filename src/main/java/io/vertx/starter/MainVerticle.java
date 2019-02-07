@@ -1,14 +1,16 @@
 package io.vertx.starter;
 
-import io.vertx.core.AbstractVerticle;
+import io.reactivex.Completable;
+import io.reactivex.Single;
+import io.vertx.reactivex.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.handler.StaticHandler;
+import io.vertx.reactivex.ext.web.Router;
+import io.vertx.reactivex.ext.web.RoutingContext;
+import io.vertx.reactivex.ext.web.handler.BodyHandler;
+import io.vertx.reactivex.ext.web.handler.StaticHandler;
 
 import java.util.HashMap;
 
@@ -16,14 +18,12 @@ public class MainVerticle extends AbstractVerticle {
 
   public static final String HEADER_CONTENT_TYPE = "Content-Type";
   public static final String CONTENT_TYPE_JSON = "application/json; charset=utf-8";
-  private final static HashMap<String, String> caches = new HashMap<String, String>();
+  private final static HashMap<String, Cache> caches = new HashMap<String, Cache>();
 
   private final Logger LOGGER = LoggerFactory.getLogger("Cache-Verticle");
 
   @Override
   public void start(Future<Void> startFuture) {
-
-    caches.put("localhost", "CARTCACHE");
 
     // HTTP API
     Router baseRouter = Router.router(vertx);
@@ -37,6 +37,10 @@ public class MainVerticle extends AbstractVerticle {
 
     baseRouter.mountSubRouter("/api", apiRouter);
 
+    Completable retrieveCache = Cache.<String, String>create("localhost", vertx)
+      .doOnSuccess(c -> this.caches.put(c.toString(), c))
+      .toCompletable();
+
     vertx
       .createHttpServer()
       .requestHandler(baseRouter::accept)
@@ -47,7 +51,6 @@ public class MainVerticle extends AbstractVerticle {
           startFuture.fail(result.cause());
         }
       });
-
   }
 
   private void getCachesHandler(RoutingContext routingContext) {
@@ -56,6 +59,7 @@ public class MainVerticle extends AbstractVerticle {
       .putHeader(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON)
       .end(new JsonObject().put("caches", caches).encodePrettily());
   }
+
 }
 
 
