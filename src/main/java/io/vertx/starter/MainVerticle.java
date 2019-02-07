@@ -33,6 +33,7 @@ public class MainVerticle extends AbstractVerticle {
 
     Router apiRouter = Router.router(vertx);
     apiRouter.route("/*").handler(BodyHandler.create());
+    apiRouter.post("/cache").handler(this::addCacheHandler);
     apiRouter.get("/caches").handler(this::getCachesHandler);
 
     baseRouter.mountSubRouter("/api", apiRouter);
@@ -60,6 +61,26 @@ public class MainVerticle extends AbstractVerticle {
       .end(new JsonObject().put("caches", caches).encodePrettily());
   }
 
+  private void addCacheHandler(RoutingContext routingContext) {
+//    Completable retrieveCache = Cache.<String, String>create("localhost", vertx)
+//      .doOnSuccess(c -> {
+//        this.caches.put(c.toString(), c);
+      Cache.create("localhost", vertx).doOnSuccess(c -> {
+        this.caches.put("localhost", c);
+        routingContext.response()
+          .setStatusCode(200)
+          .putHeader(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON)
+          .end(new JsonObject().put("caches", caches.size()).encodePrettily());
+      }).subscribe();
+//      })
+//      .doOnError(e -> {
+//        routingContext.response()
+//          .setStatusCode(500)
+//          .putHeader(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON)
+//          .end(new JsonObject().put("error", e.getMessage()).encodePrettily());
+//      })
+//      .toCompletable();
+  }
 }
 
 
