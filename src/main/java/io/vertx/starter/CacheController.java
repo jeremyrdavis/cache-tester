@@ -13,16 +13,19 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Manages the interactions with the Cache server.
+ * Manages the interactions with the CacheController server.
  */
-public class Cache<K, V> {
+public class CacheController<K, V> {
 
   private final Vertx vertx;
   private final RemoteCache<K, V> cache;
   private static final String host = "localhost";
 
-  public static <K, V> Single<Cache<K, V>> create(String host,  Vertx vertx) {
-    Configuration config = new ConfigurationBuilder().addServer().host("localhost").port(11222).build();
+  private static final java.util.logging.Logger LOGGER = java.util.logging.Logger.getLogger("io.vertx.starter");
+
+  public static <K, V> Single<CacheController<K, V>> create(String host, Vertx vertx) {
+    LOGGER.finest("creating cache for " + host);
+    Configuration config = new ConfigurationBuilder().addServer().host(host).port(11222).build();
     return vertx.
       <RemoteCache<K, V>>rxExecuteBlocking(
         future -> {
@@ -30,10 +33,10 @@ public class Cache<K, V> {
           future.complete(cache);
         }
       )
-      .map(rc -> new Cache<>(vertx, rc));
+      .map(rc -> new CacheController<>(vertx, rc));
   }
 
-  private Cache(Vertx vertx, RemoteCache<K, V> rc) {
+  private CacheController(Vertx vertx, RemoteCache<K, V> rc) {
     this.vertx = vertx;
     this.cache = rc;
   }
