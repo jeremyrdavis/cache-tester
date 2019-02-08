@@ -16,10 +16,11 @@ public class MainVerticle extends AbstractVerticle {
   public static final String HEADER_CONTENT_TYPE = "Content-Type";
   public static final String CONTENT_TYPE_JSON = "application/json; charset=utf-8";
 
-  private final static HashMap<String, CacheController> cacheControllers = new HashMap<String, CacheController>();
+  private HashMap<String, CacheController> cacheControllers = new HashMap<String, CacheController>();
 
-  /* maps the caches to their servers */
-  private final static JsonObject caches = new JsonObject();
+/* maps the caches to their servers */
+
+  private JsonObject caches = new JsonObject();
 
   private final java.util.logging.Logger LOGGER = java.util.logging.Logger.getLogger("io.vertx.starter");
 
@@ -55,7 +56,7 @@ public class MainVerticle extends AbstractVerticle {
     routingContext.response()
       .setStatusCode(200)
       .putHeader(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON)
-      .end(new JsonObject().put("cacheControllers", cacheControllers).encodePrettily());
+      .end(new JsonObject().put("cacheControllers", "foo").encodePrettily());
   }
 
   /**
@@ -66,6 +67,7 @@ public class MainVerticle extends AbstractVerticle {
    * @param routingContext
    */
   private void addCacheHandler(RoutingContext routingContext) {
+
     LOGGER.finest(routingContext.getBody().toString());
 
     JsonObject body = routingContext.getBodyAsJson();
