@@ -85,12 +85,13 @@ public class MainVerticle extends AbstractVerticle {
     LOGGER.finest(cache);
     if(this.cacheControllers.containsKey(host)){
       LOGGER.finest("cache controller contains host " + host);
-      this.caches.getJsonArray(host).add(cache);
       LOGGER.finest(this.caches.getJsonArray(host).toString());
       routingContext.response()
         .setStatusCode(200)
         .putHeader(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON)
-        .end(this.caches.encodePrettily());
+        .end(new JsonObject()
+          .put("Result", "That cache is already registered so I'm not adding it.  Be happy with what you have.")
+          .put("caches", this.caches.encodePrettily()).encodePrettily());
     }else{
       CacheController.create(host, port, vertx).doOnSuccess(c -> {
         this.cacheControllers.put(host, c);
