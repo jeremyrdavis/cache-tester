@@ -15,6 +15,7 @@ public class MainVerticle extends AbstractVerticle {
 
   public static final String HEADER_CONTENT_TYPE = "Content-Type";
   public static final String CONTENT_TYPE_JSON = "application/json; charset=utf-8";
+  public static final String CONTENT_TYPE_TEXT_PLAIN = "text/plain; charset=utf-8";
 
   private static final HashMap<String, CacheController> cacheControllers = new HashMap<String, CacheController>();
 
@@ -53,18 +54,24 @@ public class MainVerticle extends AbstractVerticle {
   }
 
   private void getCachesHandler(RoutingContext routingContext) {
-    routingContext.response()
-      .setStatusCode(200)
-      .putHeader(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON)
-      .end(caches.encodePrettily());
+    if (caches.size() >= 1) {
+      routingContext.response()
+        .setStatusCode(200)
+        .putHeader(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON)
+        .end(caches.encodePrettily());
+    }else {
+      routingContext.response()
+        .setStatusCode(200)
+        .putHeader(HEADER_CONTENT_TYPE, CONTENT_TYPE_TEXT_PLAIN)
+        .end("There are no caches.  Such empty...");
+    }
   }
 
-  /**
+  /*
    * {
    *     "host": "host_name",
    *     "cache":"cache_name"
    * }
-   * @param routingContext
    */
   private void addCacheHandler(RoutingContext routingContext) {
 
@@ -73,6 +80,7 @@ public class MainVerticle extends AbstractVerticle {
     JsonObject body = routingContext.getBodyAsJson();
     String host = body.getString("host");
     String cache = body.getString("cache");
+    int port = body.getInteger("port").intValue();
     LOGGER.finest(host);
     LOGGER.finest(cache);
     if(this.cacheControllers.containsKey(host)){
@@ -84,14 +92,20 @@ public class MainVerticle extends AbstractVerticle {
         .putHeader(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON)
         .end(this.caches.encodePrettily());
     }else{
-      CacheController.create(host, vertx).doOnSuccess(c -> {
+      CacheController.create(host, port, vertx).doOnSuccess(c -> {
         this.cacheControllers.put(host, c);
         this.caches.put(host, new JsonArray().add(cache));
         routingContext.response()
           .setStatusCode(200)
           .putHeader(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON)
           .end(this.caches.encodePrettily());
-      }).subscribe();
+      }).doOnError(e ->{
+        routingContext.response()
+          .setStatusCode(200)
+          .putHeader(HEADER_CONTENT_TYPE, CONTENT_TYPE_TEXT_PLAIN)
+          .end("Well, that didn't work:\n" + e.toString());
+        }
+      ).subscribe();
     }
   }
 

@@ -10,6 +10,7 @@ import org.infinispan.client.hotrod.configuration.Configuration;
 import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
 
 import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -23,9 +24,10 @@ public class CacheController<K, V> {
 
   private static final java.util.logging.Logger LOGGER = java.util.logging.Logger.getLogger("io.vertx.starter");
 
-  public static <K, V> Single<CacheController<K, V>> create(String host, Vertx vertx) {
+  public static <K, V> Single<CacheController<K, V>> create(String host, int port, Vertx vertx) {
     LOGGER.finest("creating cache for " + host);
-    Configuration config = new ConfigurationBuilder().addServer().host(host).port(11222).build();
+    // default port is 11222
+    Configuration config = new ConfigurationBuilder().addServer().host(host).port(port).build();
     return vertx.
       <RemoteCache<K, V>>rxExecuteBlocking(
         future -> {
